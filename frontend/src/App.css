@@ -358,6 +358,15 @@
   position: sticky;
   top: 0;
 }
+
+.export-btn {
+  padding: 10px 12px;
+  width: auto;
+}
+
+.filters-row{
+  gap: 15px;
+}
 }
 
 @media (max-width: 768px) {
@@ -378,7 +387,7 @@
   }
 
   .app-title {
-    font-size: 4rem;
+    font-size: 3rem;
     text-align: center;
   }
 
@@ -389,7 +398,7 @@
   }
 
   .stat-card {
-    min-height: 120px;
+    min-height: 140px;
   }
 }
 
