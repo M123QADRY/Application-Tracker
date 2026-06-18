@@ -552,19 +552,28 @@ return (
             </p>
 
             <button
-              onClick={async () => {
-                await fetch(
-                  `http://127.0.0.1:8000/applications/${application.id}`,
-                  {
-                    method: "DELETE",
-                  }
-                );
+  onClick={async () => {
 
-                fetchApplications();
-              }}
-            >
-              Delete
-            </button>
+    const confirmDelete = window.confirm(
+      `Delete application for ${application.organization}?`
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    await fetch(
+      `http://127.0.0.1:8000/applications/${application.id}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    fetchApplications();
+  }}
+>
+  Delete
+</button>
 
           </div>
         )
