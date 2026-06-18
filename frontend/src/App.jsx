@@ -32,7 +32,7 @@ function App() {
 
 
   const fetchApplications = () => {
-    fetch("https://apptrack-backend-w9aw.onrender.com")
+    fetch("https://apptrack-backend-w9aw.onrender.com/applications")
       .then((res) => res.json())
       .then((data) => setApplications(data))
       .catch((err) => console.error(err));
@@ -55,7 +55,7 @@ function App() {
   console.log(formData);
 
   const response = await fetch(
-    "https://apptrack-backend-w9aw.onrender.com",
+    "https://apptrack-backend-w9aw.onrender.com/applications",
     {
       method: "POST",
       headers: {
@@ -82,7 +82,7 @@ function App() {
   };
 
   const updateStatus = async (id, newStatus) => {
-  await fetch(`https://apptrack-backend-w9aw.onrender.com/${id}`, {
+  await fetch(`https://apptrack-backend-w9aw.onrender.com/applications/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -563,7 +563,7 @@ return (
     }
 
     await fetch(
-      `https://apptrack-backend-w9aw.onrender.com/${application.id}`,
+      `https://apptrack-backend-w9aw.onrender.com/applications/${application.id}`,
       {
         method: "DELETE",
       }
