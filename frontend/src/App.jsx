@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-
+import {
+  GoogleLogin
+} from "@react-oauth/google";
 
 //import {
 //  PieChart,
@@ -265,6 +267,21 @@ return (
   <div className="app-layout">
 
     {/* LEFT PANEL */}
+
+    <GoogleLogin
+  onSuccess={(credentialResponse) => {
+    console.log(credentialResponse);
+
+    localStorage.setItem(
+      "google_token",
+      credentialResponse.credential
+    );
+  }}
+
+  onError={() => {
+    console.log("Login Failed");
+  }}
+/>
 
     <div className="form-panel">
 
