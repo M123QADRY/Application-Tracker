@@ -84,4 +84,23 @@ def update_status(
     db.commit()
     db.refresh(application)
 
+@app.delete("/applications/{application_id}")
+def delete_application(application_id: int):
+
+    db: Session = SessionLocal()
+
+    application = (
+        db.query(Application)
+        .filter(Application.id == application_id)
+        .first()
+    )
+
+    if not application:
+        return {"error": "Application not found"}
+
+    db.delete(application)
+    db.commit()
+
+    return {"message": "Application deleted"}
+
     return application

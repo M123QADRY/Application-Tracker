@@ -1,7 +1,23 @@
 import { useEffect, useState } from "react";
+import "./App.css";
+
+
+//import {
+//  PieChart,
+//  Pie,
+//  Cell,
+ // Tooltip,
+ // Legend,
+//} from "recharts";
 
 function App() {
   const [applications, setApplications] = useState([]);
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [chartMode, setChartMode] = useState("type");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
+
 
   const [formData, setFormData] = useState({
   organization: "",
@@ -13,6 +29,7 @@ function App() {
   location: "",
   notes: "",
 });
+
 
   const fetchApplications = () => {
     fetch("http://127.0.0.1:8000/applications")
@@ -104,63 +121,135 @@ const rejected = applications.filter(
   (a) => a.status === "Rejected"
 ).length;
 
-  return (
-    <div style={{ padding: "20px" }}>
-      <h1>Application Tracker AI</h1>
+const filteredApplications = applications.filter(
+  (application) => {
 
-    <div
-  style={{
-    border: "1px solid #ccc",
-    padding: "10px",
-    marginBottom: "20px",
-  }}
->
-  <h3>Dashboard</h3>
+    const typeMatch =
+      typeFilter === "All" ||
+      application.application_type === typeFilter;
 
-  <p>Total Applications: {totalApplications}</p>
+    const statusMatch =
+      statusFilter === "All" ||
+      application.status === statusFilter;
 
-  <p>Jobs: {jobs}</p>
+    const searchMatch =
+  application.organization
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
 
-  <p>Universities: {universities}</p>
+  application.title
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
 
-  <p>Scholarships: {scholarships}</p>
+  application.location
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
 
-  <p>Interviews: {interviews}</p>
+  application.source
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase());
 
-  <p>Accepted: {accepted}</p>
+    return (
+      typeMatch &&
+      statusMatch &&
+      searchMatch
+    );
+  }
+);
 
-  <p>Rejected: {rejected}</p>
-</div>
+const sortedApplications = [...filteredApplications].sort(
+  (a, b) => {
+    if (sortOrder === "newest") {
+      return (
+        new Date(b.date_applied) -
+        new Date(a.date_applied)
+      );
+    }
+
+    return (
+      new Date(a.date_applied) -
+      new Date(b.date_applied)
+    );
+  }
+);
+
+const typeData = [
+  { name: "Job", value: jobs },
+  { name: "University", value: universities },
+  { name: "Scholarship", value: scholarships },
+];
+
+const statusData = [
+  {
+    name: "Interview",
+    value: interviews,
+  },
+  {
+    name: "Accepted",
+    value: accepted,
+  },
+  {
+    name: "Rejected",
+    value: rejected,
+  },
+  {
+    name: "Applied",
+    value:
+      totalApplications -
+      interviews -
+      accepted -
+      rejected,
+  },
+];
+
+const chartData =
+  chartMode === "type"
+    ? typeData
+    : statusData;
+
+return (
+  <div className="app-layout">
+
+    {/* LEFT PANEL */}
+
+    <div className="form-panel">
+
+      <h1 className="app-title">
+        AppTrack.
+      </h1>
 
       <form onSubmit={handleSubmit}>
+
         <input
           name="organization"
-          placeholder="organization"
+          placeholder="Organization"
           value={formData.organization}
           onChange={handleChange}
         />
+
         <br /><br />
 
         <input
           name="title"
-          placeholder="title"
+          placeholder="Title"
           value={formData.title}
           onChange={handleChange}
         />
+
         <br /><br />
 
         <select
-        name="application_type"
-        value={formData.application_type}
-        onChange={handleChange}
+          name="application_type"
+          value={formData.application_type}
+          onChange={handleChange}
         >
           <option value="Job">Job</option>
           <option value="University">University</option>
           <option value="Scholarship">Scholarship</option>
           <option value="Competition">Competition</option>
           <option value="Research">Research</option>
-
         </select>
+
         <br /><br />
 
         <input
@@ -169,6 +258,7 @@ const rejected = applications.filter(
           value={formData.source}
           onChange={handleChange}
         />
+
         <br /><br />
 
         <input
@@ -177,6 +267,7 @@ const rejected = applications.filter(
           value={formData.location}
           onChange={handleChange}
         />
+
         <br /><br />
 
         <input
@@ -185,6 +276,7 @@ const rejected = applications.filter(
           value={formData.application_url}
           onChange={handleChange}
         />
+
         <br /><br />
 
         <textarea
@@ -193,64 +285,307 @@ const rejected = applications.filter(
           value={formData.notes}
           onChange={handleChange}
         />
+
         <br /><br />
 
-        <button type="submit">Add Application</button>
+        <button type="submit">
+          Add Application
+        </button>
+
       </form>
 
-      <hr />
-
-      {applications.map((application) => (
-        <div
-          key={application.id}
-          style={{
-            border: "1px solid gray",
-            padding: "10px",
-            marginBottom: "10px",
-          }}
-        >
-          <h3>{application.organization}</h3>
-          <p>Title: {application.title}</p>
-          <p>Type: {application.application_type}</p>
-          <div>
-  Status:
-
-  <select
-    value={application.status}
-    onChange={(e) =>
-      updateStatus(
-        application.id,
-        e.target.value
-      )
-    }
-  >
-    <option value="Applied">Applied</option>
-    <option value="Under Review">
-      Under Review
-    </option>
-    <option value="Assessment">
-      Assessment
-    </option>
-    <option value="Interview">
-      Interview
-    </option>
-    <option value="Accepted">
-      Accepted
-    </option>
-    <option value="Rejected">
-      Rejected
-    </option>
-    <option value="Withdrawn">
-      Withdrawn
-    </option>
-  </select>
-</div>
-          <p>Location: {application.location}</p>
-          <p>Date Applied: {application.date_applied}</p>
-        </div>
-      ))}
     </div>
-  );
-}
+
+    {/* CENTER PANEL */}
+
+    <div className="applications-panel">
+
+      <div
+        style={{
+          marginBottom: "20px",
+          display: "flex",
+          gap: "10px",
+        }}
+      >
+
+        <input
+  type="text"
+  placeholder="Search organization..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+/>
+
+<br /><br />
+
+        <select
+          value={typeFilter}
+          onChange={(e) =>
+            setTypeFilter(e.target.value)
+          }
+        >
+          <option value="All">All Types</option>
+          <option value="Job">Job</option>
+          <option value="University">
+            University
+          </option>
+          <option value="Scholarship">
+            Scholarship
+          </option>
+          <option value="Competition">
+            Competition
+          </option>
+          <option value="Research">
+            Research
+          </option>
+        </select>
+
+        <select
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(e.target.value)
+          }
+        >
+          <option value="All">
+            All Statuses
+          </option>
+
+          <option value="Applied">
+            Applied
+          </option>
+
+          <option value="Under Review">
+            Under Review
+          </option>
+
+          <option value="Assessment">
+            Assessment
+          </option>
+
+          <option value="Interview">
+            Interview
+          </option>
+
+          <option value="Accepted">
+            Accepted
+          </option>
+
+          <option value="Rejected">
+            Rejected
+          </option>
+
+          <option value="Withdrawn">
+            Withdrawn
+          </option>
+        </select>
+
+      </div>
+
+      <select
+  value={sortOrder}
+  onChange={(e) =>
+    setSortOrder(e.target.value)
+  }
+>
+  <option value="newest">
+    Newest First
+  </option>
+
+  <option value="oldest">
+    Oldest First
+  </option>
+</select>
+
+      <h2>
+  Applications ({filteredApplications.length})
+</h2>
+
+{sortedApplications.length === 0 ? (
+
+  <div className="empty-state">
+    <h3>No applications found</h3>
+    <p>
+      Add your first application or
+      change your filters.
+    </p>
+  </div>
+
+) : 
+
+
+      (sortedApplications.map(
+        (application) => (
+          <div
+            key={application.id}
+            className="application-card"
+          >
+            <h3>
+              {application.organization}
+            </h3>
+
+            <p>
+              Title: {application.title}
+            </p>
+
+            <p>
+              Type:{" "}
+              {application.application_type}
+            </p>
+
+            <div>
+              Status:
+
+              <select
+  className={`status-${application.status
+    .toLowerCase()
+    .replace(" ", "-")}`}
+  value={application.status}
+  onChange={(e) =>
+    updateStatus(
+      application.id,
+      e.target.value
+    )
+  }
+>
+                <option value="Applied">
+                  Applied
+                </option>
+
+                <option value="Under Review">
+                  Under Review
+                </option>
+
+                <option value="Assessment">
+                  Assessment
+                </option>
+
+                <option value="Interview">
+                  Interview
+                </option>
+
+                <option value="Accepted">
+                  Accepted
+                </option>
+
+                <option value="Rejected">
+                  Rejected
+                </option>
+
+                <option value="Withdrawn">
+                  Withdrawn
+                </option>
+              </select>
+            </div>
+
+            <p>
+              Location:
+              {" "}
+              {application.location}
+            </p>
+
+            <p>Source: {application.source}</p>
+
+            <p>
+              Date Applied:
+              {" "}
+              {application.date_applied}
+            </p>
+
+            <button
+              onClick={async () => {
+                await fetch(
+                  `http://127.0.0.1:8000/applications/${application.id}`,
+                  {
+                    method: "DELETE",
+                  }
+                );
+
+                fetchApplications();
+              }}
+            >
+              Delete
+            </button>
+
+          </div>
+        )
+      ))}
+
+    </div>
+
+    {/* RIGHT PANEL */}
+
+    <div className="dashboard">
+
+      <h2>Dashboard</h2>
+
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "20px",
+        }}
+      >
+        <button
+          onClick={() =>
+            setChartMode("type")
+          }
+        >
+          Types
+        </button>
+
+        <button
+          onClick={() =>
+            setChartMode("status")
+          }
+        >
+          Status
+        </button>
+      </div>
+
+      <div className="chart-container">
+  Test Dashboard
+</div>
+      <div className="stats-grid">
+
+  <div className="stat-card">
+    <h2>{totalApplications}</h2>
+    <p>Total</p>
+  </div>
+
+  <div className="stat-card">
+    <h2>{jobs}</h2>
+    <p>Jobs</p>
+  </div>
+
+    <div className="stat-card">
+  <h2>{universities}</h2>
+  <p>Universities</p>
+</div>
+
+  <div className="stat-card">
+    <h2>{interviews}</h2>
+    <p>Interviews</p>
+  </div>
+
+  <div className="stat-card">
+    <h2>{accepted}</h2>
+    <p>Accepted</p>
+  </div>
+
+  <div className="stat-card">
+    <h2>{rejected}</h2>
+    <p>Rejected</p>
+  </div>
+
+</div>
+
+  
+
+
+
+    </div>
+
+  </div>
+);}
+
 
 export default App;
