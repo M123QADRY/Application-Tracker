@@ -600,7 +600,7 @@ return (
       </div>
 
       <div className="chart-container">
-  Test Dashboard
+  Application Statistics
 </div>
       <div className="stats-grid">
 
@@ -635,6 +635,10 @@ return (
   </div>
 
 </div>
+
+<footer>
+  Built by Maaz Qadry
+</footer>
 
   
 
