@@ -344,4 +344,18 @@
     width: 100%;
     box-sizing: border-box;
   }
+
+ 
+  .logo {
+    font-size: 4rem;
+  }
+
+  .stat-card {
+  min-height: 100px;
+}
+
+.logo-section {
+  position: sticky;
+  top: 0;
+}
 }
