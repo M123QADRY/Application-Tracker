@@ -569,6 +569,9 @@ return (
   Delete
 </button>
 
+<p className="tagline">
+  Track jobs, universities and opportunities in one place.
+</p>
           </div>
         )
       ))}
