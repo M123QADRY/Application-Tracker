@@ -1,26 +1,18 @@
-Application Tracker AI
+# Application Tracker AI
 
-Track:
-- Jobs
-- Universities
-- Scholarships
-- Competitions
+A full-stack application management platform built with React, FastAPI, and SQLite.
 
-Built with:
-- React
-- FastAPI
-- SQLite
-- SQLAlchemy
+## Features
 
-Current Features:
-- Create applications
-- View applications
-- Update status
+- Track jobs, universities, scholarships, competitions, and research applications
+- Search and filter applications
+- Sort by application date
+- Update application statuses
 - Dashboard statistics
+- Responsive multi-panel layout
 
-Planned Features:
-- Delete applications
-- Filtering
-- Gmail integration
-- AI email classification
-- Browser extension
+## Tech Stack
+
+Frontend: React + Vite
+Backend: FastAPI
+Database: SQLite
