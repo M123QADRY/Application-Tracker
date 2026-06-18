@@ -296,3 +296,52 @@
   border-radius: 8px;
   cursor: pointer;
 }
+
+@media (max-width: 768px) {
+
+  .app-title {
+    font-size: 3rem;
+    text-align: center;
+  }
+
+  .app-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .left-panel,
+  .main-content,
+  .dashboard {
+    width: 100%;
+    max-width: 100%;
+    border-right: none;
+    border-left: none;
+    padding: 15px;
+    box-sizing: border-box;
+  }
+
+  .main-content {
+    order: 3;
+  }
+
+  .dashboard {
+    order: 2;
+  }
+
+  .left-panel {
+    order: 1;
+  }
+
+  .application-card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
