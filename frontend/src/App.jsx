@@ -159,17 +159,12 @@ const filteredApplications = applications.filter(
 
 const sortedApplications = [...filteredApplications].sort(
   (a, b) => {
+
     if (sortOrder === "newest") {
-      return (
-        new Date(b.date_applied) -
-        new Date(a.date_applied)
-      );
+      return b.id - a.id;
     }
 
-    return (
-      new Date(a.date_applied) -
-      new Date(b.date_applied)
-    );
+    return a.id - b.id;
   }
 );
 
@@ -206,6 +201,65 @@ const chartData =
   chartMode === "type"
     ? typeData
     : statusData;
+
+const exportCSV = () => {
+
+  const headers = [
+    "Organization",
+    "Title",
+    "Type",
+    "Status",
+    "Location",
+    "Source",
+    "Date Applied"
+  ];
+
+  const rows = sortedApplications.map(
+    (application) => [
+      application.organization,
+      application.title,
+      application.application_type,
+      application.status,
+      application.location,
+      application.source,
+      application.date_applied,
+    ]
+  );
+
+  const csvContent = [
+    headers,
+    ...rows
+  ]
+    .map((row) => row.join(","))
+    .join("\n");
+
+  const blob = new Blob(
+    [csvContent],
+    { type: "text/csv" }
+  );
+
+  const url =
+    window.URL.createObjectURL(blob);
+
+  const link =
+    document.createElement("a");
+
+  link.href = url;
+
+  const today = new Date()
+  .toISOString()
+  .split("T")[0];
+
+link.download =
+  `applications_${today}.csv`;
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
+
+  window.URL.revokeObjectURL(url);
+};
 
 return (
   <div className="app-layout">
@@ -394,6 +448,13 @@ return (
     Oldest First
   </option>
 </select>
+
+<button
+  className="export-btn"
+  onClick={exportCSV}
+>
+  Export CSV
+</button>
 
       <h2>
   Applications ({filteredApplications.length})

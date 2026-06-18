@@ -289,3 +289,10 @@
   color: #aaa;
   margin-top: 20px;
 }
+
+.export-btn {
+  margin-left: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
