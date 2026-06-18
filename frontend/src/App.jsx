@@ -32,7 +32,7 @@ function App() {
 
 
   const fetchApplications = () => {
-    fetch("http://127.0.0.1:8000/applications")
+    fetch("https://apptrack-backend-w9aw.onrender.com")
       .then((res) => res.json())
       .then((data) => setApplications(data))
       .catch((err) => console.error(err));
@@ -55,7 +55,7 @@ function App() {
   console.log(formData);
 
   const response = await fetch(
-    "http://127.0.0.1:8000/applications",
+    "https://apptrack-backend-w9aw.onrender.com",
     {
       method: "POST",
       headers: {
@@ -82,7 +82,7 @@ function App() {
   };
 
   const updateStatus = async (id, newStatus) => {
-  await fetch(`http://127.0.0.1:8000/applications/${id}`, {
+  await fetch(`https://apptrack-backend-w9aw.onrender.com/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -563,7 +563,7 @@ return (
     }
 
     await fetch(
-      `http://127.0.0.1:8000/applications/${application.id}`,
+      `https://apptrack-backend-w9aw.onrender.com/${application.id}`,
       {
         method: "DELETE",
       }
