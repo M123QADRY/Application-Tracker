@@ -354,13 +354,7 @@ return (
 
     <div className="applications-panel">
 
-      <div
-        style={{
-          marginBottom: "20px",
-          display: "flex",
-          gap: "10px",
-        }}
-      >
+      <div className="filters-row">
 
         <input
   type="text"
@@ -587,13 +581,7 @@ return (
 
       <h2>Dashboard</h2>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom: "20px",
-        }}
-      >
+      <div className="filters-row">
         <button
           onClick={() =>
             setChartMode("type")
