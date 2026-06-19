@@ -4,6 +4,8 @@ import {
   GoogleLogin
 } from "@react-oauth/google";
 
+import { jwtDecode } from "jwt-decode";
+
 //import {
 //  PieChart,
 //  Pie,
@@ -19,6 +21,9 @@ function App() {
   const [chartMode, setChartMode] = useState("type");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
+  const user = JSON.parse(
+  localStorage.getItem("google_user")
+);
 
 
   const [formData, setFormData] = useState({
@@ -261,27 +266,63 @@ link.download =
   document.body.removeChild(link);
 
   window.URL.revokeObjectURL(url);
+
 };
+
+const handleSuccess = (credentialResponse) => {
+
+  const user = jwtDecode(
+    credentialResponse.credential
+  );
+
+  console.log("User:", user);
+
+  localStorage.setItem(
+    "google_user",
+    JSON.stringify(user)
+  );
+
+  window.location.reload();
+};
+
+
+
+  // fetchApplications()
+  // handleSubmit()
+  // other functions...
 
 return (
   <div className="app-layout">
 
     {/* LEFT PANEL */}
 
-    <GoogleLogin
-  onSuccess={(credentialResponse) => {
-    console.log(credentialResponse);
 
-    localStorage.setItem(
-      "google_token",
-      credentialResponse.credential
-    );
-  }}
+    {user ? (
+  <div className="user-profile">
+    <img
+      src={user.picture}
+      alt={user.name}
+      width="40"
+      style={{ borderRadius: "50%" }}
+    />
 
-  onError={() => {
-    console.log("Login Failed");
-  }}
-/>
+    <span>{user.name}</span>
+
+    <button
+      onClick={() => {
+        localStorage.removeItem("google_user");
+        window.location.reload();
+      }}
+    >
+      Logout
+    </button>
+  </div>
+) : (
+  <GoogleLogin
+    onSuccess={handleSuccess}
+    onError={() => console.log("Login Failed")}
+  />
+)}
 
     <div className="form-panel">
 
@@ -662,14 +703,10 @@ return (
   Built by Maaz Qadry
 </footer>
 
-  
-
-
-
     </div>
 
   </div>
-);}
-
+);
+}
 
 export default App;
