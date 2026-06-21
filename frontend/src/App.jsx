@@ -282,7 +282,7 @@ const handleSuccess = (credentialResponse) => {
     JSON.stringify(user)
   );
 
-  window.location.reload();
+ /// window.location.reload();
 };
 
 
@@ -296,35 +296,33 @@ return (
 
     {/* LEFT PANEL */}
 
+    <div className="form-panel">
 
-    {user ? (
-  <div className="user-profile">
-    <img
-      src={user.picture}
-      alt={user.name}
-      width="40"
-      style={{ borderRadius: "50%" }}
-    />
+      {user ? (
+  <div className="user-bar">
+  <img
+    src={user.picture}
+    alt={user.name}
+    className="user-avatar"
+  />
 
-    <span>{user.name}</span>
+  <span>{user.name}</span>
 
-    <button
-      onClick={() => {
-        localStorage.removeItem("google_user");
-        window.location.reload();
-      }}
-    >
-      Logout
-    </button>
-  </div>
+  <button
+    onClick={() => {
+      localStorage.removeItem("google_user");
+      window.location.reload();
+    }}
+  >
+    Logout
+  </button>
+</div>
 ) : (
   <GoogleLogin
     onSuccess={handleSuccess}
     onError={() => console.log("Login Failed")}
   />
 )}
-
-    <div className="form-panel">
 
       <h1 className="app-title">
         AppTrack.
