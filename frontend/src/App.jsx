@@ -59,7 +59,7 @@ function App() {
   const handleSubmit = async (e) => {
   e.preventDefault();
 
-  console.log(formData);
+  const userId = localStorage.getItem("user_id");
 
   const response = await fetch(
     "https://apptrack-backend-w9aw.onrender.com/applications",
@@ -68,9 +68,16 @@ function App() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
-    }
-  );
+      body: JSON.stringify({ user_id: Number(userId), 
+        organization: formData.organization, title: formData.title, 
+        application_type: formData.application_type, status: "Applied", 
+        source: formData.source, 
+        application_url: formData.application_url, 
+        location: formData.location, notes: formData.notes,
+    }),
+
+  }
+);
 
     if (response.ok) {
       fetchApplications();
@@ -269,20 +276,45 @@ link.download =
 
 };
 
-const handleSuccess = (credentialResponse) => {
+const handleSuccess = async (
+  credentialResponse
+) => {
 
   const user = jwtDecode(
     credentialResponse.credential
   );
 
-  console.log("User:", user);
+  const response = await fetch(
+    "https://apptrack-backend-w9aw.onrender.com/login",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+
+      body: JSON.stringify({
+        google_id: user.sub,
+        email: user.email,
+        name: user.name,
+      }),
+    }
+  );
+
+  const dbUser =
+    await response.json();
+
+  localStorage.setItem(
+    "user_id",
+    dbUser.id
+  );
 
   localStorage.setItem(
     "google_user",
     JSON.stringify(user)
   );
 
- /// window.location.reload();
+  window.location.reload();
 };
 
 
