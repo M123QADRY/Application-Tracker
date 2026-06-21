@@ -10,10 +10,46 @@ from app.schemas import (
     StatusUpdate
 )
 
+from pydantic import BaseModel
+
+class LoginRequest(BaseModel):
+    google_id: str
+    email: str
+    name: str
+
+@app.post("/login")
+def login_user(
+    data: LoginRequest,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(
+        User.google_id == data.google_id
+    ).first()
+
+    if not user:
+
+        user = User(
+            google_id=data.google_id,
+            email=data.email,
+            name=data.name
+        )
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    return {
+        "id": user.id,
+        "email": user.email,
+        "name": user.name
+    }
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173",
+        "http://localhost:5174",
+        "https://application-tracker-kappa-topaz.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
