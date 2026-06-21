@@ -38,16 +38,15 @@ function App() {
 });
 
 
-  const fetchApplications = () => {
-    fetch("https://apptrack-backend-w9aw.onrender.com/applications")
-      .then((res) => res.json())
-      .then((data) => setApplications(data))
-      .catch((err) => console.error(err));
-  };
+const userId =
+  localStorage.getItem("user_id");
 
-  useEffect(() => {
-    fetchApplications();
-  }, []);
+fetch(
+  `https://apptrack-backend-w9aw.onrender.com/applications/${userId}`
+)
+  .then((res) => res.json())
+  .then((data) => setApplications(data))
+  .catch((err) => console.error(err));
 
   const handleChange = (e) => {
     setFormData({
