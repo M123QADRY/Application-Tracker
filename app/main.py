@@ -77,38 +77,49 @@ def home():
 def create_application(application: ApplicationCreate):
 
     db: Session = SessionLocal()
-    
+
     new_application = Application(
-    organization=application.organization,
-    title=application.title,
+        user_id=application.user_id,
 
-    application_type=application.application_type,
+        organization=application.organization,
+        title=application.title,
 
-    status=application.status,
+        application_type=application.application_type,
 
-    date_applied=date.today(),
+        status=application.status,
 
-    source=application.source,
+        date_applied=date.today(),
 
-    application_url=application.application_url,
+        source=application.source,
 
-    location=application.location,
+        application_url=application.application_url,
 
-    notes=application.notes
-)
+        location=application.location,
+
+        notes=application.notes
+    )
 
     db.add(new_application)
     db.commit()
     db.refresh(new_application)
-    
+
     return new_application
 
-@app.get("/applications")
-def get_applications():
+@app.get("/applications/{user_id}")
+def get_applications(user_id: int):
 
     db: Session = SessionLocal()
 
-    return db.query(Application).all()
+    applications = (
+        db.query(Application)
+        .filter(
+            Application.user_id == user_id
+        )
+        .all()
+    )
+
+    return applications
+
 
 @app.put("/applications/{application_id}")
 def update_status(

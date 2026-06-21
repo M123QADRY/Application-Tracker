@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 
 class ApplicationCreate(BaseModel):
+    user_id: int
+
     organization: str
     title: str
 
@@ -15,6 +17,7 @@ class ApplicationCreate(BaseModel):
     location: str
 
     notes: str
+
 
 class StatusUpdate(BaseModel):
     status: str
