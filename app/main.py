@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import date
+from fastapi import FastAPI, Depends
+from app.models import Application, User
 
 from app.database import Base, engine, SessionLocal
 from app.models import Application
@@ -11,6 +13,27 @@ from app.schemas import (
 )
 
 from pydantic import BaseModel
+
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173",
+        "http://localhost:5174",
+        "https://application-tracker-kappa-topaz.vercel.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+Base.metadata.create_all(bind=engine)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 class LoginRequest(BaseModel):
     google_id: str
@@ -43,18 +66,6 @@ def login_user(
         "email": user.email,
         "name": user.name
     }
-
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173",
-        "http://localhost:5174",
-        "https://application-tracker-kappa-topaz.vercel.app"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-Base.metadata.create_all(bind=engine)
 
 
 @app.get("/")
