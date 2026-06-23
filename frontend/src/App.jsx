@@ -327,6 +327,18 @@ const handleSuccess = async (
   window.location.reload();
 };
 
+if (!user) {
+  return (
+    <div className="login-screen">
+      <h1>AppTrack.</h1>
+
+      <GoogleLogin
+        onSuccess={handleSuccess}
+        onError={() => console.log("Login Failed")}
+      />
+    </div>
+  );
+}
 
 
   // fetchApplications()
