@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import {
-  GoogleLogin
+  GoogleLogin,
+  useGoogleLogin
 } from "@react-oauth/google";
 
 import { jwtDecode } from "jwt-decode";
-
 //import {
 //  PieChart,
 //  Pie,
@@ -25,6 +25,71 @@ function App() {
   localStorage.getItem("google_user")
 );
 
+const testGmail = async () => {
+  const token = localStorage.getItem(
+    "gmail_access_token"
+  );
+
+  const response = await fetch(
+    "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  const data = await response.json();
+
+  for (const message of data.messages) {
+  const emailResponse = await fetch(
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=(hiring OR interview OR application OR job)&maxResults=20`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  const email = await emailResponse.json();
+
+  const headers = email.payload?.headers;
+
+if (!headers) {
+  continue;
+}
+
+  const subjectHeader = headers.find(
+    (h) => h.name.toLowerCase() === "subject"
+  );
+
+  const subject = subjectHeader
+    ? subjectHeader.value
+    : "No Subject";
+
+  const from = headers.find(
+    (h) => h.name.toLowerCase() === "from"
+  )?.value || "Unknown Sender";
+
+  const text =
+    `${subject} ${from} ${email.snippet}`.toLowerCase();
+
+  if (
+    text.includes("hiring") ||
+    text.includes("application") ||
+    text.includes("interview") ||
+    text.includes("apply") ||
+    text.includes("career") ||
+    text.includes("job")
+  ) {
+    console.log({
+      subject,
+      from,
+      snippet: email.snippet,
+    });
+  }
+}
+}
 
   const [formData, setFormData] = useState({
   organization: "",
@@ -327,6 +392,20 @@ const handleSuccess = async (
   window.location.reload();
 };
 
+const gmailLogin = useGoogleLogin({
+  scope:
+    "openid email profile https://www.googleapis.com/auth/gmail.readonly",
+
+  onSuccess: async (tokenResponse) => {
+    console.log(tokenResponse);
+
+    localStorage.setItem(
+      "gmail_access_token",
+      tokenResponse.access_token
+    );
+  },
+});
+
 if (!user) {
   return (
     <div className="login-screen">
@@ -339,6 +418,8 @@ if (!user) {
     </div>
   );
 }
+
+
 
 
   // fetchApplications()
@@ -361,6 +442,15 @@ return (
   />
 
   <span>{user.name}</span>
+
+  <button onClick={() => gmailLogin()}>
+  Connect Gmail
+</button>
+
+
+<button onClick={testGmail}>
+  Test Gmail
+</button>
 
   <button
     onClick={() => {
