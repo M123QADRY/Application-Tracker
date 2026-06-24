@@ -423,6 +423,133 @@ if (!user) {
   );
 }
 
+const syncGmail = async () => {
+
+  const token = localStorage.getItem(
+    "gmail_access_token"
+  );
+
+  console.log("Syncing Gmail...");
+  console.log("Token:", token);
+
+  const response = await fetch(
+  "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=(application OR interview OR hiring OR recruiter OR assessment OR career OR job)&maxResults=20",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  console.log("Response status:", response.status);
+
+  const data = await response.json();
+
+  console.log("Gmail data:", data);
+
+  console.log(
+  "Messages found:",
+  data.messages.length
+);
+
+for (const message of data.messages) {
+
+  console.log("NEW LOOP RUNNING");
+  console.log("Message ID:", message.id);
+
+  const emailResponse = await fetch(
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  console.log(
+    "Email status:",
+    emailResponse.status
+  );
+
+  const email = await emailResponse.json();
+
+  const headers = email.payload?.headers || [];
+
+const subject =
+  headers.find(
+    (h) => h.name.toLowerCase() === "subject"
+  )?.value || "No Subject";
+
+const from =
+  headers.find(
+    (h) => h.name.toLowerCase() === "from"
+  )?.value || "Unknown Sender";
+
+const text =
+  `${subject} ${from} ${email.snippet}`.toLowerCase();
+
+if (
+  text.includes("application") ||
+  text.includes("interview") ||
+  text.includes("hiring") ||
+  text.includes("recruiter") ||
+  text.includes("assessment") ||
+  text.includes("career") ||
+  text.includes("job")
+) {
+
+  await fetch(
+  "https://apptrack-backend-w9aw.onrender.com/applications",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user_id: Number(
+        localStorage.getItem("user_id")
+      ),
+
+      organization: from,
+
+      title: subject,
+
+      application_type: "Job",
+
+      status: "Applied",
+
+      source: "Gmail",
+
+      application_url: "",
+
+      location: "",
+
+      notes: email.snippet,
+    }),
+  }
+);
+
+console.log(
+  "Created AppTrack entry:",
+  subject
+);
+break;
+};
+{
+  console.log({
+    subject,
+    from,
+    snippet: email.snippet,
+  });
+}
+{
+  // save to AppTrack
+}
+}
+
+};
+
+
 
 
 
@@ -451,6 +578,9 @@ return (
   Connect Gmail
 </button>
 
+<button onClick={syncGmail}>
+  Sync Gmail
+</button>
 
 <button onClick={testGmail}>
   Test Gmail
