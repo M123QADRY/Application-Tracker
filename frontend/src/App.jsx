@@ -429,6 +429,29 @@ const syncGmail = async () => {
     "gmail_access_token"
   );
 
+  const universityKeywords = [
+    "university",
+    "institute",
+    "admission",
+    "graduate",
+    "masters",
+    "application fee waiver",
+    "fall",
+    "spring",
+    "phd",
+  ];
+
+  const jobKeywords = [
+    "job",
+    "hiring",
+    "interview",
+    "recruiter",
+    "career",
+    "assessment",
+    "position",
+    "opening",
+  ];
+
   console.log("Syncing Gmail...");
   console.log("Token:", token);
 
@@ -445,12 +468,12 @@ const syncGmail = async () => {
 
   const data = await response.json();
 
-  console.log("Gmail data:", data);
+ console.log("Gmail data:", data);
 
-  console.log(
-  "Messages found:",
-  data.messages.length
-);
+if (!data.messages) {
+  console.log("No messages returned");
+  return;
+}
 
 for (const message of data.messages) {
 
@@ -480,68 +503,178 @@ const subject =
     (h) => h.name.toLowerCase() === "subject"
   )?.value || "No Subject";
 
+
 const from =
   headers.find(
     (h) => h.name.toLowerCase() === "from"
   )?.value || "Unknown Sender";
 
+
+const organization =
+  from.split("<")[0].trim();
+
+console.log("FROM:", from);
+console.log("ORG:", organization);
+
 const text =
   `${subject} ${from} ${email.snippet}`.toLowerCase();
 
-if (
-  text.includes("application") ||
-  text.includes("interview") ||
-  text.includes("hiring") ||
-  text.includes("recruiter") ||
-  text.includes("assessment") ||
-  text.includes("career") ||
-  text.includes("job")
-) {
+let status = "Applied";
 
-  await fetch(
+// Accepted
+if (
+  text.includes("congratulations") ||
+  text.includes("offer letter") ||
+  text.includes("selected") ||
+  text.includes("we are pleased to offer") ||
+  text.includes("welcome aboard") ||
+  text.includes("offer of employment")
+) {
+  status = "Accepted";
+}
+
+// Interview
+else if (
+  text.includes("interview") ||
+  text.includes("interview invitation") ||
+  text.includes("schedule an interview") ||
+  text.includes("interview round")
+) {
+  status = "Interview";
+}
+
+// Assessment
+else if (
+  text.includes("assessment") ||
+  text.includes("online test") ||
+  text.includes("coding challenge") ||
+  text.includes("aptitude test") ||
+  text.includes("hackerrank") ||
+  text.includes("test link")
+) {
+  status = "Assessment";
+}
+
+// Under Review
+else if (
+  text.includes("under review") ||
+  text.includes("reviewing your application") ||
+  text.includes("application is being reviewed")
+) {
+  status = "Under Review";
+}
+
+// Rejected
+else if (
+  text.includes("unfortunately") ||
+  text.includes("not moving forward") ||
+  text.includes("regret to inform") ||
+  text.includes("not selected") ||
+  text.includes("position has been filled")
+) {
+  status = "Rejected";
+}
+
+// Applied
+else if (
+  text.includes("thank you for applying") ||
+  text.includes("application received") ||
+  text.includes("we received your application") ||
+  text.includes("successfully applied")
+) {
+  status = "Applied";
+}
+
+const isUniversity = universityKeywords.some(
+  (keyword) => text.includes(keyword)
+);
+
+const isJob = jobKeywords.some(
+  (keyword) => text.includes(keyword)
+);
+
+console.log("TEXT:", text);
+console.log("isUniversity:", isUniversity);
+console.log("isJob:", isJob);
+
+// Skip irrelevant emails
+if (!isUniversity && !isJob) {
+  continue;
+}
+
+let applicationType = null;
+
+if (isUniversity) {
+  applicationType = "University";
+} else if (isJob) {
+  applicationType = "Job";
+}
+
+console.log("Posting to AppTrack");
+
+const payload = {
+  user_id: Number(localStorage.getItem("user_id")),
+  organization,
+  title: subject,
+  application_type: applicationType,
+  status: status,
+  source: "Gmail",
+  application_url: "",
+  location: "",
+  notes: email.snippet,
+};
+
+console.log(payload);
+
+// Prevent duplicates
+const existing = applications?.find(
+  (app) =>
+    app.title === subject &&
+    app.organization === organization
+);
+
+if (existing) {
+  console.log("Duplicate found, skipping");
+  continue;
+}
+
+console.log("ABOUT TO POST");
+
+const response = await fetch(
   "https://apptrack-backend-w9aw.onrender.com/applications",
   {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      user_id: Number(
-        localStorage.getItem("user_id")
-      ),
-
-      organization: from,
-
-      title: subject,
-
-      application_type: "Job",
-
-      status: "Applied",
-
-      source: "Gmail",
-
-      application_url: "",
-
-      location: "",
-
-      notes: email.snippet,
-    }),
+    body: JSON.stringify(payload),
   }
 );
+
+console.log("POST Status:", response.status);
+
+const result = await response.json();
+
+console.log("POST Response:", result);
 
 console.log(
   "Created AppTrack entry:",
   subject
 );
-break;
-};
-{
-  console.log({
-    subject,
-    from,
-    snippet: email.snippet,
-  });
-}
+
+// Refresh UI
+await fetchApplications();
+
+// Debug log
+console.log({
+  subject,
+  from,
+  organization,
+  applicationType,
+  snippet: email.snippet,
+});
+
+
 {
   // save to AppTrack
 }
@@ -564,43 +697,6 @@ return (
 
     <div className="form-panel">
 
-      {user ? (
-  <div className="user-bar">
-  <img
-    src={user.picture}
-    alt={user.name}
-    className="user-avatar"
-  />
-
-  <span>{user.name}</span>
-
-  <button onClick={() => gmailLogin()}>
-  Connect Gmail
-</button>
-
-<button onClick={syncGmail}>
-  Sync Gmail
-</button>
-
-<button onClick={testGmail}>
-  Test Gmail
-</button>
-
-  <button
-    onClick={() => {
-      localStorage.removeItem("google_user");
-      window.location.reload();
-    }}
-  >
-    Logout
-  </button>
-</div>
-) : (
-  <GoogleLogin
-    onSuccess={handleSuccess}
-    onError={() => console.log("Login Failed")}
-  />
-)}
 
       <h1 className="app-title">
         AppTrack.
@@ -682,7 +778,42 @@ return (
 
       </form>
 
+      {user ? (
+  <div className="user-bar">
+  <img
+    src={user.picture}
+    alt={user.name}
+    className="user-avatar"
+  />
+
+  <span>{user.name}</span>
+
+  <div className="top-controls">
+  <button>Connect Gmail</button>
+  <button>Sync Gmail</button>
+  <button
+    onClick={() => {
+      localStorage.removeItem("google_user");
+      window.location.reload();
+    }}
+  >
+    Logout
+  </button>
+
+</div>
+</div>
+) : (
+  <GoogleLogin
+    onSuccess={handleSuccess}
+    onError={() => console.log("Login Failed")}
+  />
+)}
+
     </div>
+
+    
+
+    
 
     {/* CENTER PANEL */}
 
@@ -865,11 +996,9 @@ return (
               </select>
             </div>
 
-            <p>
-              Location:
-              {" "}
-              {application.location}
-            </p>
+            {application.location && (
+  <p>📍 {application.location}</p>
+)}
 
             <p>Source: {application.source}</p>
 
