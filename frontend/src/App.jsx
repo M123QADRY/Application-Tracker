@@ -30,20 +30,34 @@ const testGmail = async () => {
     "gmail_access_token"
   );
 
-  const response = await fetch(
-    "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+console.log("Token:", token);
+console.log("Length:", token?.length);
 
-  const data = await response.json();
+const response = await fetch(
+  "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=20",
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+console.log("Status:", response.status);
+
+const data = await response.json();
+
+console.log(data);
+
+console.log(JSON.stringify(data, null, 2));
+
+if (!data.messages) {
+  console.log("No messages returned");
+  return;
+}
 
   for (const message of data.messages) {
   const emailResponse = await fetch(
-    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=(hiring OR interview OR application OR job)&maxResults=20`,
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -55,39 +69,23 @@ const testGmail = async () => {
 
   const headers = email.payload?.headers;
 
-if (!headers) {
-  continue;
-}
+  if (!headers) continue;
 
-  const subjectHeader = headers.find(
-    (h) => h.name.toLowerCase() === "subject"
-  );
+  const subject =
+    headers.find(
+      (h) => h.name.toLowerCase() === "subject"
+    )?.value || "No Subject";
 
-  const subject = subjectHeader
-    ? subjectHeader.value
-    : "No Subject";
+  const from =
+    headers.find(
+      (h) => h.name.toLowerCase() === "from"
+    )?.value || "Unknown Sender";
 
-  const from = headers.find(
-    (h) => h.name.toLowerCase() === "from"
-  )?.value || "Unknown Sender";
-
-  const text =
-    `${subject} ${from} ${email.snippet}`.toLowerCase();
-
-  if (
-    text.includes("hiring") ||
-    text.includes("application") ||
-    text.includes("interview") ||
-    text.includes("apply") ||
-    text.includes("career") ||
-    text.includes("job")
-  ) {
-    console.log({
-      subject,
-      from,
-      snippet: email.snippet,
-    });
-  }
+  console.log({
+    subject,
+    from,
+    snippet: email.snippet,
+  });
 }
 }
 
@@ -393,16 +391,22 @@ const handleSuccess = async (
 };
 
 const gmailLogin = useGoogleLogin({
+  flow: "implicit",
+
   scope:
-    "openid email profile https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.readonly",
 
   onSuccess: async (tokenResponse) => {
-    console.log(tokenResponse);
+    console.log("Token Response:", tokenResponse);
 
     localStorage.setItem(
       "gmail_access_token",
       tokenResponse.access_token
     );
+  },
+
+  onError: () => {
+    console.log("Gmail Login Failed");
   },
 });
 
