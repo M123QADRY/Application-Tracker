@@ -34,7 +34,7 @@ console.log("Token:", token);
 console.log("Length:", token?.length);
 
 const response = await fetch(
-  "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=20",
+  "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=200",
   {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -441,22 +441,11 @@ const syncGmail = async () => {
     "phd",
   ];
 
-  const jobKeywords = [
-    "job",
-    "hiring",
-    "interview",
-    "recruiter",
-    "career",
-    "assessment",
-    "position",
-    "opening",
-  ];
-
   console.log("Syncing Gmail...");
   console.log("Token:", token);
 
   const response = await fetch(
-  "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=(application OR interview OR hiring OR recruiter OR assessment OR career OR job)&maxResults=20",
+  "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=(application OR interview OR hiring OR recruiter OR assessment OR career OR job)&maxResults=200",
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -498,6 +487,17 @@ for (const message of data.messages) {
 
   const headers = email.payload?.headers || [];
 
+  const dateHeader =
+  headers.find(
+    (h) => h.name.toLowerCase() === "date"
+  )?.value || "";
+
+const emailDate = new Date(dateHeader)
+  .toISOString()
+  .split("T")[0];
+
+console.log("Email Date:", emailDate);
+
 const subject =
   headers.find(
     (h) => h.name.toLowerCase() === "subject"
@@ -518,6 +518,56 @@ console.log("ORG:", organization);
 
 const text =
   `${subject} ${from} ${email.snippet}`.toLowerCase();
+
+const isUniversity = universityKeywords.some(
+  (keyword) => text.includes(keyword)
+);
+
+const applicationKeywords = [
+  "application received",
+  "thank you for applying",
+  "we received your application",
+  "under review",
+  "reviewing your application",
+  "application is being reviewed",
+ // "assessment",
+//  "coding challenge",
+  "online test",
+ // "hackerrank",
+ // "aptitude test",
+  "test link",
+  "interview",
+  "interview invitation",
+  "schedule an interview",
+  "interview round",
+  "offer letter",
+  "selected",
+  "congratulations",
+  "welcome aboard",
+  "we are pleased to offer",
+  "offer of employment",
+  "not selected",
+  "regret to inform",
+  "not moving forward",
+  "position has been filled",
+];
+
+const isApplicationEmail =
+  applicationKeywords.some(
+    (keyword) => text.includes(keyword)
+  );
+
+console.log("TEXT:", text);
+console.log("isUniversity:", isUniversity);
+console.log(
+  "isApplicationEmail:",
+  isApplicationEmail
+);
+
+// Ignore job alerts, recommendations, newsletters
+if (!isUniversity && !isApplicationEmail) {
+  continue;
+}
 
 let status = "Applied";
 
@@ -585,29 +635,10 @@ else if (
   status = "Applied";
 }
 
-const isUniversity = universityKeywords.some(
-  (keyword) => text.includes(keyword)
-);
-
-const isJob = jobKeywords.some(
-  (keyword) => text.includes(keyword)
-);
-
-console.log("TEXT:", text);
-console.log("isUniversity:", isUniversity);
-console.log("isJob:", isJob);
-
-// Skip irrelevant emails
-if (!isUniversity && !isJob) {
-  continue;
-}
-
-let applicationType = null;
+let applicationType = "Application";
 
 if (isUniversity) {
   applicationType = "University";
-} else if (isJob) {
-  applicationType = "Job";
 }
 
 console.log("Posting to AppTrack");
@@ -619,6 +650,7 @@ const payload = {
   application_type: applicationType,
   status: status,
   source: "Gmail",
+  date_applied: emailDate,
   application_url: "",
   location: "",
   notes: email.snippet,
@@ -789,8 +821,8 @@ return (
   <span>{user.name}</span>
 
   <div className="top-controls">
-  <button>Connect Gmail</button>
-  <button>Sync Gmail</button>
+  <button onClick={gmailLogin}>Connect Gmail</button>
+  <button onClick={syncGmail}>Sync Gmail</button>
   <button
     onClick={() => {
       localStorage.removeItem("google_user");
@@ -1003,7 +1035,7 @@ return (
             <p>Source: {application.source}</p>
 
             <p>
-              Date Applied:
+              Date:
               {" "}
               {application.date_applied}
             </p>
