@@ -18,14 +18,14 @@ function App() {
   const [applications, setApplications] = useState([]);
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [chartMode, setChartMode] = useState("type");
+  //const [chartMode, setChartMode] = useState("type");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
   const user = JSON.parse(
   localStorage.getItem("google_user")
 );
 
-const testGmail = async () => {
+/*const testGmail = async () => {
   const token = localStorage.getItem(
     "gmail_access_token"
   );
@@ -87,7 +87,7 @@ if (!data.messages) {
     snippet: email.snippet,
   });
 }
-}
+}*/
 
   const [formData, setFormData] = useState({
   organization: "",
@@ -255,7 +255,7 @@ const sortedApplications = [...filteredApplications].sort(
   }
 );
 
-const typeData = [
+/*const typeData = [
   { name: "Job", value: jobs },
   { name: "University", value: universities },
   { name: "Scholarship", value: scholarships },
@@ -287,7 +287,7 @@ const statusData = [
 const chartData =
   chartMode === "type"
     ? typeData
-    : statusData;
+    : statusData;*/
 
 const exportCSV = () => {
 
@@ -463,6 +463,16 @@ if (!data.messages) {
   console.log("No messages returned");
   return;
 }
+
+ const statusRank = {
+    Applied: 1,
+    "Under Review": 2,
+    Assessment: 3,
+    Interview: 4,
+    Accepted: 5,
+    Rejected: 5,
+  };
+
 
 for (const message of data.messages) {
 
@@ -661,12 +671,33 @@ console.log(payload);
 // Prevent duplicates
 const existing = applications?.find(
   (app) =>
-    app.title === subject &&
     app.organization === organization
 );
-
 if (existing) {
-  console.log("Duplicate found, skipping");
+
+  if (
+    statusRank[status] >
+    statusRank[existing.status]
+  ) {
+
+    await fetch(
+      `https://apptrack-backend-w9aw.onrender.com/applications/${existing.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: status,
+        }),
+      }
+    );
+
+    console.log(
+      `Updated ${organization} from ${existing.status} to ${status}`
+    );
+  }
+
   continue;
 }
 
@@ -1080,24 +1111,6 @@ return (
     <div className="dashboard">
 
       <h2>Dashboard</h2>
-
-      <div className="filters-row">
-        <button
-          onClick={() =>
-            setChartMode("type")
-          }
-        >
-          Types
-        </button>
-
-        <button
-          onClick={() =>
-            setChartMode("status")
-          }
-        >
-          Status
-        </button>
-      </div>
 
       <div className="chart-container">
   Application Statistics
