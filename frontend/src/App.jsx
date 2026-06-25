@@ -445,7 +445,7 @@ const syncGmail = async () => {
   console.log("Token:", token);
 
   const response = await fetch(
-  "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=(application OR interview OR hiring OR recruiter OR assessment OR career OR job)&maxResults=200",
+  "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=(application OR interview OR hiring OR recruiter OR assessment OR career OR job)&maxResults=50",
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -473,6 +473,9 @@ if (!data.messages) {
     Rejected: 5,
   };
 
+const existingApplications = [
+  ...(applications || [])
+];
 
 for (const message of data.messages) {
 
@@ -669,7 +672,7 @@ const payload = {
 console.log(payload);
 
 // Prevent duplicates
-const existing = applications?.find(
+const existing = existingApplications.find(
   (app) =>
     app.organization === organization
 );
@@ -720,13 +723,14 @@ const result = await response.json();
 
 console.log("POST Response:", result);
 
+existingApplications.push(result);
+
 console.log(
   "Created AppTrack entry:",
   subject
 );
 
-// Refresh UI
-await fetchApplications();
+
 
 // Debug log
 console.log({
@@ -742,6 +746,11 @@ console.log({
   // save to AppTrack
 }
 }
+
+// Refresh UI
+await fetchApplications();
+
+console.log("Gmail sync complete");
 
 };
 
